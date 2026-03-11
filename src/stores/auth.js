@@ -47,6 +47,19 @@ export const useAuthStore = defineStore('auth', () => {
     return data
   }
 
+  async function updateUser(id, name, password = undefined) {
+    const updates = { name }
+    if (password !== undefined) updates.password = password
+    const { data, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  }
+
   function logout() {
     setUser(null)
   }
@@ -59,6 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
     loadFromStorage,
     fetchUsers,
     createUser,
+    updateUser,
     logout,
   }
 })

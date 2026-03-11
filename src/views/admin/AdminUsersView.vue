@@ -49,25 +49,71 @@
     <div v-if="loadingUsers" class="flex justify-center py-8"><a-spin /></div>
     <div v-else class="space-y-3">
       <h3 class="text-xs text-slate-500 font-semibold uppercase tracking-wide px-1">Usuarios registrados ({{ users.length }})</h3>
+
       <div
         v-for="user in users"
         :key="user.id"
-        class="flex items-center gap-3 glass rounded-2xl p-4 border border-slate-700/30"
+        class="glass rounded-2xl border border-slate-700/30 overflow-hidden"
       >
-        <div
-          class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0"
-          :class="user.role === 'admin' ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-primary-500 to-purple-600'"
-        >
-          {{ user.name.charAt(0).toUpperCase() }}
+        <!-- Normal view -->
+        <div v-if="editingId !== user.id" class="flex items-center gap-3 p-4">
+          <div
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0"
+            :class="user.role === 'admin' ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-primary-500 to-purple-600'"
+          >
+            {{ user.name.charAt(0).toUpperCase() }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-medium text-slate-100 truncate">{{ user.name }}</p>
+            <p class="text-xs mt-0.5 flex items-center gap-2">
+              <span v-if="user.role === 'admin'" class="text-amber-400">⭐ Admin</span>
+              <span v-else class="text-primary-400">👤 Usuario</span>
+              <span v-if="user.password" class="text-emerald-400">🔒</span>
+            </p>
+          </div>
+          <button
+            @click="startEdit(user)"
+            :id="`btn-edit-user-${user.id}`"
+            class="p-2 rounded-xl text-slate-400 hover:text-primary-400 hover:bg-primary-500/10 transition-all active:scale-90 flex-shrink-0"
+            title="Editar"
+          >
+            ✏️
+          </button>
         </div>
-        <div class="flex-1">
-          <p class="font-medium text-slate-100">{{ user.name }}</p>
-          <p class="text-xs mt-0.5 flex items-center gap-2">
-            <span v-if="user.role === 'admin'" class="text-amber-400">⭐ Administrador</span>
-            <span v-else class="text-primary-400">👤 Usuario</span>
-            <span v-if="user.password" class="text-emerald-400 text-xs">🔒 Con clave</span>
-            <span v-else-if="user.role !== 'admin'" class="text-slate-500 text-xs">Sin clave</span>
+
+        <!-- Edit mode -->
+        <div v-else class="p-4 space-y-3 border-t border-primary-500/30 bg-primary-500/5">
+          <p class="text-xs text-primary-400 font-medium">Editando usuario</p>
+          <a-input
+            v-model:value="editForm.name"
+            placeholder="Nombre"
+            :id="`input-edit-name-${user.id}`"
+            @pressEnter="saveEdit(user)"
+          />
+          <a-input-password
+            v-model:value="editForm.password"
+            :placeholder="user.role === 'admin' ? 'Nueva contraseña (requerida)' : 'Nueva contraseña (opcional, vacío = sin cambio)'"
+            :id="`input-edit-password-${user.id}`"
+          />
+          <p v-if="user.role !== 'admin'" class="text-slate-500 text-xs -mt-1">
+            💡 Deja vacío para no cambiar la contraseña actual
           </p>
+          <div class="flex gap-2">
+            <a-button block @click="cancelEdit" class="!rounded-xl !border-slate-600 !text-slate-300">
+              Cancelar
+            </a-button>
+            <a-button
+              type="primary"
+              block
+              :loading="updatingId === user.id"
+              @click="saveEdit(user)"
+              :id="`btn-save-user-${user.id}`"
+              class="!rounded-xl"
+              style="background: linear-gradient(135deg, #6366f1, #9333ea)"
+            >
+              Guardar
+            </a-button>
+          </div>
         </div>
       </div>
     </div>
@@ -83,7 +129,11 @@ const auth = useAuthStore()
 const users = ref([])
 const loadingUsers = ref(true)
 const saving = ref(false)
+const editingId = ref(null)
+const updatingId = ref(null)
+
 const form = reactive({ name: '', role: 'user', password: '' })
+const editForm = reactive({ name: '', password: '' })
 
 onMounted(() => loadUsers())
 
@@ -111,6 +161,42 @@ async function createUser() {
     message.error('Error: ' + e.message)
   } finally {
     saving.value = false
+  }
+}
+
+function startEdit(user) {
+  editingId.value = user.id
+  editForm.name = user.name
+  editForm.password = ''
+}
+
+function cancelEdit() {
+  editingId.value = null
+  editForm.name = ''
+  editForm.password = ''
+}
+
+async function saveEdit(user) {
+  if (!editForm.name.trim()) return message.warning('El nombre no puede estar vacío')
+  if (user.role === 'admin' && editForm.password === '' && !user.password) {
+    return message.warning('Este admin no tiene contraseña guardada, debes asignarle una')
+  }
+
+  updatingId.value = user.id
+  try {
+    // password = undefined means "don't change it", empty string means "remove"
+    const newPassword = editForm.password.trim()
+      ? editForm.password.trim()
+      : (user.role === 'admin' ? user.password : undefined) // admins keep old password if blank; users: don't update
+
+    await auth.updateUser(user.id, editForm.name.trim(), newPassword)
+    message.success('Usuario actualizado ✅')
+    cancelEdit()
+    await loadUsers()
+  } catch (e) {
+    message.error('Error: ' + e.message)
+  } finally {
+    updatingId.value = null
   }
 }
 </script>
