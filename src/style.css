@@ -1,0 +1,135 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --surface: #0f172a;
+  --surface-card: #1e293b;
+  --surface-elevated: #293548;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border: #334155;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html, body {
+  overscroll-behavior-y: none;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--surface);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ant Design dark overrides */
+.ant-btn-primary {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.ant-modal-content,
+.ant-drawer-content {
+  background-color: var(--surface-card) !important;
+  border-radius: 1.5rem !important;
+}
+
+.ant-modal-header,
+.ant-drawer-header {
+  background-color: var(--surface-card) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.ant-modal-title,
+.ant-drawer-title {
+  color: var(--text-primary) !important;
+}
+
+.ant-input,
+.ant-input-number,
+.ant-select-selector,
+.ant-picker {
+  background-color: var(--surface-elevated) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-input::placeholder,
+.ant-input-number input::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+.ant-form-item-label > label {
+  color: var(--text-secondary) !important;
+}
+
+.ant-select-dropdown {
+  background-color: var(--surface-card) !important;
+}
+
+.ant-select-item {
+  color: var(--text-primary) !important;
+}
+
+.ant-select-item-option-active,
+.ant-select-item-option-selected {
+  background-color: var(--surface-elevated) !important;
+}
+
+.ant-picker-panel-container {
+  background-color: var(--surface-card) !important;
+}
+
+.ant-picker-header,
+.ant-picker-content th,
+.ant-picker-cell-inner {
+  color: var(--text-primary) !important;
+}
+
+.ant-picker-cell:not(.ant-picker-cell-selected) .ant-picker-cell-inner:hover {
+  background-color: var(--surface-elevated) !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* Glass effect utility */
+.glass {
+  background: rgba(30, 41, 59, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+}
+
+/* Safe area for mobile */
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+}
